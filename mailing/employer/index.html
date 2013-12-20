@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" href="style.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="app.js" async="async"></script>
+    <script src="templates.js" async="async"></script>
+    <script>
+        var hhd = hhd || {};
+        hhd.options = {
+            url: 'http://localhost:8080',
+            refreshTimeout: 1000,
+            itemsInRow: 3,
+            itemsInCol: 4
+        };
+        hhd.renderOptions = {
+            fontSize: '12',
+            fontName: 'FreeMono',
+            fontBold: 'true',
+            lineWidth: '1',
+            margin: '5',
+            areaAlpha: '.5',
+            bgcolor: 'black',
+            fgcolor: 'gray',
+            hideLegend: 'false',
+            yMin: '0'
+        };
+        hhd.graphs = [
+            /* [ title, template, source ] */
+            ['SLEEPING_CLIENT_LONG', 'mailing_employer_event_block', 'SLEEPING_CLIENT_LONG'],
+            ['ARCHIVING_VACANCY', 'mailing_employer_event_block', 'ARCHIVING_VACANCY'],
+            ['FOREIGN_PUBLICATION', 'mailing_employer_event_block', 'FOREIGN_PUBLICATION'],
+            ['NO_ACCESS_TO_RESUMES_BASE', 'mailing_employer_event_block', 'NO_ACCESS_TO_RESUMES_BASE'],
+            ['NO_ACTIONS_AFTER_REGISTRATION', 'mailing_employer_event_block', 'NO_ACTIONS_AFTER_REGISTRATION'],
+            ['NO_VACANCIES', 'mailing_employer_event_block', 'NO_VACANCIES'],
+            ['SLEEPING_CLIENT', 'mailing_employer_event_block', 'SLEEPING_CLIENT'],
+            ['SLEEPING_CLIENT_LONG', 'mailing_employer_event_block', 'SLEEPING_CLIENT_LONG'],
+            ['SUGGEST_TO_BUY_PREMIUM', 'mailing_employer_event_block', 'SUGGEST_TO_BUY_PREMIUM'],
+            ['UNPAID_BILL_WARNING', 'mailing_employer_event_block', 'UNPAID_BILL_WARNING'],
+            ['UNPUBLISHED_VACANCIES', 'mailing_employer_event_block', 'UNPUBLISHED_VACANCIES'],
+            ['WANT_WORK', 'mailing_employer_event_block', 'WANT_WORK']
+        ];
+    </script>
+</head>
+<body>
+    <select id="period">
+        <option value="-1h">1h</option>
+        <option value="-4h">4h</option>
+        <option value="-12h">12h</option>
+        <option value="-1d">1d</option>
+        <option value="-7d">1w</option>
+    </select>
+</body>
+</html>
