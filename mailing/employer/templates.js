@@ -19,7 +19,7 @@ hhd.__templates = {
     ')',
     
     'mailing_employer_event_block' : 'group('+
-        'alias(color(stacked(summarize(sum(hosts.*.mailing.employer.event_mailing.{{SOURCE}}.success),"1day")),"00cc00"),"success"),'+
-        'alias(color(stacked(summarize(sum(hosts.*.mailing.employer.event_mailing.{{SOURCE}}.error),"1day")),"cc0000"),"error")' +
+        'alias(color(stacked(sum(hosts.*.mailing.employer.event_mailing.{{SOURCE}}.success)),"00cc00"),"success"),'+
+        'alias(color(stacked(sum(hosts.*.mailing.employer.event_mailing.{{SOURCE}}.error)),"cc0000"),"error")' +
     ')'
 };
