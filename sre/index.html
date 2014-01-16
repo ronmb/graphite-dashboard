@@ -2,155 +2,48 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Open Sans', sans-serif;
-            font-size: 12px;
-        }
+    <meta http-equiv="refresh" content="3600">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'/>
+    <link href="assets/style.css" rel="stylesheet" type="text/css"/>
 
-        .dashboard {
-            display: inline-block;
-            padding-top: 8px;
-            font-size: 18px;
-        }
+    <script src="lib/jquery-2.0.3.min.js"></script>
+    <script src="lib/signals-1.0.0.min.js"></script>
+    <script src="lib/hasher-1.2.0.min.js"></script>
+    <script src="lib/crossroads-0.12.0.min.js"></script>
 
-        .dark .dashboard {
-            color: #fff;
-            background: #000;
-        }
-
-        nav {
-            padding: 6px 12px;
-            padding-bottom: 12px;
-            background: #fff;
-        }
-
-        .main-graphs, .all-graphs {
-            margin: 0;
-            padding: 0;
-        }
-
-        .main-graphs li, .all-graphs li {
-            display: block;
-            float: left;
-            list-style: none;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-
-        .main-graphs li {
-            width: 25%;
-            height: 300px;
-        }
-
-        .all-graphs li {
-            width: 16.5%;
-            height: 225px;
-        }
-
-        .graph-counter {
-            line-height: 230px;
-            text-align: center;
-            font-size: 40px;
-        }
-
-        .graph-counter.alert {
-            background: #f00;
-        }
-    </style>
+    <script src="config.js"></script>
     <script src="dashboard.js"></script>
-    <script src="http://yandex.st/jquery/2.0.3/jquery.min.js"></script>
-    <script src="lib/signals.js"></script>
-    <script src="lib/hasher.js"></script>
-    <script src="lib/crossroads.js"></script>
+    <script src="assets/main.js"></script>
+
     <script>
         $(function() {
-            var graphiteUrl = 'http://graphite.hh.ru'
-            var commonOptions = 'fontSize=10&fontName=FreeMono&lineWidth=1&areaAlpha=0.85';
-            var from = '4h';
-
-            function addGraph($parent, templateString, createNew) {
-                var splitted = templateString.split(/[(),]/);
-                var templateName = splitted[0], host = $.trim(splitted[1]), source = $.trim(splitted[2]);
-                var template = templates[templateName];
-                var target = template.target.replace(/{{host}}/g, host).replace(/{{source}}/g, source);
-
-                var params = [target, commonOptions, 'width=' + $parent.width(), 'height=' + $parent.height(),
-                              'from=-' + from, 'hideLegend=' + $('#toggle-legend').is(':checked')];
-                
-                if (template.options) {
-                    params.push(template.options);
-                }
-                if ($('#toggle-mode').is(':checked')) {
-                    params.push('fgcolor=ffffff&bgcolor=000000');
-                }
-
-                var src = graphiteUrl + '/render?target=' + params.join('&');
-                var graphlot = graphiteUrl + '/graphlot/?target=' + target;
-
-                if (createNew) {
-                    $parent.children('a').remove();
-                    $parent.append('<a href=\'' + graphlot + '\' target="_blank"><img src=\'' + src + '\'/></a>');
-                } else {
-                    $parent.find('img').attr('src', src);
-                }
-            }
+            var interval = '2h';
+            var errorLimit = 15;
 
             function playSound() {
-                var audio = new Audio('ding.wav');
+                var audio = new Audio('assets/ding.wav');
                 audio.play();
             }
 
-            function checkTriggers() {
-                var trigger5xxUrl = graphiteUrl + '/render?target=sum(hosts.frontik*.counts.total.code.5*)&format=json&from=-60sec';
-                var triggerRpsUrl = graphiteUrl + '/render?target=sum(hosts.frontik*.counts.total.sum*)&format=json&from=-60sec';
+            function updateGraphs() {
+                var additionalParams = [
+                    'hideLegend=' + $('#toggle-legend').is(':checked')
+                ];
 
-                $.ajax({
-                    url: trigger5xxUrl,
-                    success: function(triggerData) {
-                        var sum = 0;
-                        for (var i = 0; i < triggerData[0].datapoints.length; i++) {
-                            sum += triggerData[0].datapoints[i][0];
-                        }
+                if ($('#toggle-darkmode').is(':checked')) {
+                    additionalParams.push('fgcolor=ffffff&bgcolor=000000');
+                }
 
-                        $('#5xx-count span').text((sum / 6).toFixed(1));
-                        $('#5xx-count').toggleClass('alert', sum >= 120);
-                        if (sum >= 120) {
-                            playSound();
-                        }
-                    }
-                });
-
-                $.ajax({
-                    url: triggerRpsUrl,
-                    success: function(triggerData) {
-                        var sum = 0;
-                        for (var i = 0; i < triggerData[0].datapoints.length; i++) {
-                            sum += triggerData[0].datapoints[i][0];
-                        }
-
-                        $('#rps-count span').text((sum / 6).toFixed(0));
-                    }
-                });
-            }
-
-            function redrawGraphs(createNew) {
-                $('#dashboard li[data-template]').each(function() {
-                    var template = $(this).attr('data-template');
-                    addGraph($(this), template, createNew);
-                });
+                redrawGraphs(interval, additionalParams);
             }
 
             $('#toggle-legend').click(function() {
-                redrawGraphs(false);
+                updateGraphs();
                 window.localStorage.setItem('legend', $(this).is(':checked') ? 'off' : 'on');
             });
 
-            $('#toggle-mode').click(function() {
-                redrawGraphs(false);
+            $('#toggle-darkmode').click(function() {
+                updateGraphs();
                 $('body').toggleClass('dark');
                 window.localStorage.setItem('darkmode', $(this).is(':checked') ? 'on' : 'off');
             });
@@ -160,39 +53,52 @@
             }
 
             if (window.localStorage.getItem('darkmode') == 'on') {
-                $('#toggle-mode').prop('checked', true);
+                $('#toggle-darkmode').prop('checked', true);
                 $('body').toggleClass('dark');
             }
 
             crossroads.addRoute('/from/{period}', function(period) {
-                from = period;
-                redrawGraphs(true);
+                interval = period;
+                updateGraphs();
             });
 
             function handleChanges(newHash, oldHash) {
-                crossroads.parse(newHash ? newHash : '/from/4h');
+                crossroads.parse(newHash ? newHash : '/from/' + interval);
             }
 
             hasher.changed.add(handleChanges);
             hasher.initialized.add(handleChanges);
             hasher.init();
 
+            setCounters({
+                RPS: function(value) {
+                    $('#rps-count span').text(value.toFixed(0));
+                },
+                errors: function(value) {
+                    $('#5xx-count span').text(value.toFixed(1));
+                    $('#5xx-count').toggleClass('alert', value >= errorLimit);
+                    if (value >= errorLimit) {
+                        playSound();
+                    }
+                }
+            });
+
             setInterval(function() {
-                redrawGraphs(false);
-                checkTriggers();
-            }, 15000);
+                updateGraphs();
+            }, config.updateInterval);
         });
     </script>
 </head>
 <body>
     <nav>
-        <a href="#/from/1h">1 hour</a>
-        <a href="#/from/4h">4 hours</a>
+        <a href="#/from/30min">30 min</a>
+        <a href="#/from/2h">2 hours</a>
+        <a href="#/from/6h">6 hours</a>
         <a href="#/from/12h">12 hours</a>
         <a href="#/from/1d">1 day</a>
         <a href="#/from/7d">1 week</a>
         <label for="toggle-legend"><input type="checkbox" id="toggle-legend" checked="checked"/>No legend</label>
-        <label for="toggle-mode"><input type="checkbox" id="toggle-mode"/>Night mode</label>
+        <label for="toggle-darkmode"><input type="checkbox" id="toggle-darkmode"/>Night mode</label>
     </nav>
     <section class="dashboard" id="dashboard">
         <ul class="main-graphs">
@@ -200,12 +106,12 @@
             <!--<li data-template="rps_by_host(frontik[0-9]*)">RPS by host</li>-->
             <li data-template="semaphore(frontik[0-9]*, total)">Frontik RPS</li>
             <li data-template="stages-frontik-q95(frontik[0-9]*, total)">Frontik stages q95</li>
-            <li data-template="semaphore(logic*, total)">Logic RPS</li>
-            <li data-template="stages-logic-q95(logic*, total)">Logic stages q95</li>
+            <li data-template="semaphore(logic[0-9]*, total)">Logic RPS</li>
+            <li data-template="stages-logic-q95(logic[0-9]*, total)">Logic stages q95</li>
         </ul>
         <ul class="all-graphs">
             <li id="rps-count" class="graph-counter">RPS: <span>NA</span></li>
-            <li id="5xx-count" class="graph-counter">5xx/sec: <span>NA</span></li>
+            <li id="5xx-count" class="graph-counter">5xxPS: <span>NA</span></li>
             <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_index)">Index RPS</li>
             <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_index)">Index stages q95</li>
             <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_applicant_searchvacancyresult)">Vacancy search RPS</li>

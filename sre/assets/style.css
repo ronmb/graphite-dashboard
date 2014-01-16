@@ -1,0 +1,57 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+}
+
+nav {
+    padding: 6px 12px;
+    padding-bottom: 12px;
+    background: #fff;
+}
+
+.dashboard {
+    display: inline-block;
+    padding-top: 8px;
+    font-size: 18px;
+}
+
+.dark .dashboard {
+    color: #fff;
+    background: #000;
+}
+
+.main-graphs, .all-graphs {
+    margin: 0;
+    padding: 0;
+}
+
+.main-graphs li, .all-graphs li {
+    position: relative;
+    display: block;
+    float: left;
+    list-style: none;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.main-graphs li {
+    width: 25%;
+    height: 300px;
+}
+
+.all-graphs li {
+    width: 16.5%;
+    height: 225px;
+}
+
+.graph-counter {
+    line-height: 230px;
+    text-align: center;
+    font-size: 40px;
+}
+
+.graph-counter.alert {
+    background: #f00;
+}
