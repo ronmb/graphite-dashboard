@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 12px;
+        }
+
+        .dashboard {
+            display: inline-block;
+            padding-top: 8px;
+            font-size: 18px;
+        }
+
+        .dark .dashboard {
+            color: #fff;
+            background: #000;
+        }
+
+        nav {
+            padding: 6px 12px;
+            padding-bottom: 12px;
+            background: #fff;
+        }
+
+        .main-graphs, .all-graphs {
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-graphs li, .all-graphs li {
+            display: block;
+            float: left;
+            list-style: none;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .main-graphs li {
+            width: 25%;
+            height: 300px;
+        }
+
+        .all-graphs li {
+            width: 16.5%;
+            height: 225px;
+        }
+
+        .graph-counter {
+            line-height: 230px;
+            text-align: center;
+            font-size: 40px;
+        }
+
+        .graph-counter.alert {
+            background: #f00;
+        }
+    </style>
+    <script src="dashboard.js"></script>
+    <script src="http://yandex.st/jquery/2.0.3/jquery.min.js"></script>
+    <script src="lib/signals.js"></script>
+    <script src="lib/hasher.js"></script>
+    <script src="lib/crossroads.js"></script>
+    <script>
+        $(function() {
+            var graphiteUrl = 'http://graphite.hh.ru'
+            var commonOptions = 'fontSize=10&fontName=FreeMono&lineWidth=1&areaAlpha=0.85';
+            var from = '4h';
+
+            function addGraph($parent, templateString, createNew) {
+                var splitted = templateString.split(/[(),]/);
+                var templateName = splitted[0], host = $.trim(splitted[1]), source = $.trim(splitted[2]);
+                var template = templates[templateName];
+                var target = template.target.replace(/{{host}}/g, host).replace(/{{source}}/g, source);
+
+                var params = [target, commonOptions, 'width=' + $parent.width(), 'height=' + $parent.height(),
+                              'from=-' + from, 'hideLegend=' + $('#toggle-legend').is(':checked')];
+                
+                if (template.options) {
+                    params.push(template.options);
+                }
+                if ($('#toggle-mode').is(':checked')) {
+                    params.push('fgcolor=ffffff&bgcolor=000000');
+                }
+
+                var src = graphiteUrl + '/render?target=' + params.join('&');
+                var graphlot = graphiteUrl + '/graphlot/?target=' + target;
+
+                if (createNew) {
+                    $parent.children('a').remove();
+                    $parent.append('<a href=\'' + graphlot + '\' target="_blank"><img src=\'' + src + '\'/></a>');
+                } else {
+                    $parent.find('img').attr('src', src);
+                }
+            }
+
+            function playSound() {
+                var audio = new Audio('ding.wav');
+                audio.play();
+            }
+
+            function checkTriggers() {
+                var trigger5xxUrl = graphiteUrl + '/render?target=sum(hosts.frontik*.counts.total.code.5*)&format=json&from=-60sec';
+                var triggerRpsUrl = graphiteUrl + '/render?target=sum(hosts.frontik*.counts.total.sum*)&format=json&from=-60sec';
+
+                $.ajax({
+                    url: trigger5xxUrl,
+                    success: function(triggerData) {
+                        var sum = 0;
+                        for (var i = 0; i < triggerData[0].datapoints.length; i++) {
+                            sum += triggerData[0].datapoints[i][0];
+                        }
+
+                        $('#5xx-count span').text((sum / 6).toFixed(1));
+                        $('#5xx-count').toggleClass('alert', sum >= 120);
+                        if (sum >= 120) {
+                            playSound();
+                        }
+                    }
+                });
+
+                $.ajax({
+                    url: triggerRpsUrl,
+                    success: function(triggerData) {
+                        var sum = 0;
+                        for (var i = 0; i < triggerData[0].datapoints.length; i++) {
+                            sum += triggerData[0].datapoints[i][0];
+                        }
+
+                        $('#rps-count span').text((sum / 6).toFixed(0));
+                    }
+                });
+            }
+
+            function redrawGraphs(createNew) {
+                $('#dashboard li[data-template]').each(function() {
+                    var template = $(this).attr('data-template');
+                    addGraph($(this), template, createNew);
+                });
+            }
+
+            $('#toggle-legend').click(function() {
+                redrawGraphs(false);
+                window.localStorage.setItem('legend', $(this).is(':checked') ? 'off' : 'on');
+            });
+
+            $('#toggle-mode').click(function() {
+                redrawGraphs(false);
+                $('body').toggleClass('dark');
+                window.localStorage.setItem('darkmode', $(this).is(':checked') ? 'on' : 'off');
+            });
+
+            if (window.localStorage.getItem('legend') == 'off') {
+                $('#toggle-legend').prop('checked', true);
+            }
+
+            if (window.localStorage.getItem('darkmode') == 'on') {
+                $('#toggle-mode').prop('checked', true);
+                $('body').toggleClass('dark');
+            }
+
+            crossroads.addRoute('/from/{period}', function(period) {
+                from = period;
+                redrawGraphs(true);
+            });
+
+            function handleChanges(newHash, oldHash) {
+                crossroads.parse(newHash ? newHash : '/from/4h');
+            }
+
+            hasher.changed.add(handleChanges);
+            hasher.initialized.add(handleChanges);
+            hasher.init();
+
+            setInterval(function() {
+                redrawGraphs(false);
+                checkTriggers();
+            }, 15000);
+        });
+    </script>
+</head>
+<body>
+    <nav>
+        <a href="#/from/1h">1 hour</a>
+        <a href="#/from/4h">4 hours</a>
+        <a href="#/from/12h">12 hours</a>
+        <a href="#/from/1d">1 day</a>
+        <a href="#/from/7d">1 week</a>
+        <label for="toggle-legend"><input type="checkbox" id="toggle-legend" checked="checked"/>No legend</label>
+        <label for="toggle-mode"><input type="checkbox" id="toggle-mode"/>Night mode</label>
+    </nav>
+    <section class="dashboard" id="dashboard">
+        <ul class="main-graphs">
+            <!--<li data-template="timings_by_host(frontik[0-9]*)">Response time by host</li>-->
+            <!--<li data-template="rps_by_host(frontik[0-9]*)">RPS by host</li>-->
+            <li data-template="semaphore(frontik[0-9]*, total)">Frontik RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, total)">Frontik stages q95</li>
+            <li data-template="semaphore(logic*, total)">Logic RPS</li>
+            <li data-template="stages-logic-q95(logic*, total)">Logic stages q95</li>
+        </ul>
+        <ul class="all-graphs">
+            <li id="rps-count" class="graph-counter">RPS: <span>NA</span></li>
+            <li id="5xx-count" class="graph-counter">5xx/sec: <span>NA</span></li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_index)">Index RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_index)">Index stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_applicant_searchvacancyresult)">Vacancy search RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_applicant_searchvacancyresult)">Vacancy search stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_vacancy)">Vacancy RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_vacancy)">Vacancy stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_employerview)">Employer RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_employerview)">Employer stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_applicant_negotiations)">Applicant negotiations RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_applicant_negotiations)">Applicant negotiations stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_resume)">Resume RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_resume)">Resume stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_employer_vacancies)">Employer vacancies RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_employer_vacancies)">Employer vacancies stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_employer_vacancyresponses)">Employer negotiations RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_employer_vacancyresponses)">Employer negotiations stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_resumesearch_result)">Resume search RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_resumesearch_result)">Resume search stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_applicant_resumes)">Applicant resumes RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_applicant_resumes)">Applicant resumes stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_related_resumes)">Related resumes RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_related_resumes)">Related resumes stages q95</li>
+        </ul>
+    </section>
+</body>
+</html>
