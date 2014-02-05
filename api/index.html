@@ -11,8 +11,8 @@
         hhd.options = {
             url: 'http://graphite.hh.ru',
             refreshTimeout: 30000,
-            itemsInRow: 3,
-            itemsInCol: 4
+            itemsInRow: 6,
+            itemsInCol: 5
         };
         hhd.renderOptions = {
             fontSize: '12',
@@ -28,6 +28,8 @@
         };
         hhd.graphs = [
             /* [ title, template, source ] */
+
+             /* 1 */
             ['total, rps, time', 'semaphore', 'total'],
             ['total, rps, code', 'codes', 'total'],
             ['total, q95, sec', 'response_time', 'total'],
@@ -36,13 +38,47 @@
             ['/vacancies, rps, code', 'codes', 'page.hhapi_pages_vacancies'],
             ['/vacancies, q95, sec', 'response_time', 'page.hhapi_pages_vacancies'],
 
+            /* 2 */
+
+            ['/vacancies/{id}, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_item'],
+            ['/vacancies/{id}, rps, code', 'codes', 'page.hhapi_pages_vacancies_item'],
+            ['/vacancies/{id}, q95, sec', 'response_time', 'page.hhapi_pages_vacancies_item'],
+
+            ['/vacancies/favorited, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_favorited'],
+            ['/vacancies/favorited, rps, code', 'codes', 'page.hhapi_pages_vacancies_favorited'],
+            ['/vacancies/favorited, q95, sec', 'response_time', 'page.hhapi_pages_vacancies_favorited'],
+
+            /* 3 */
+
+            ['/employers, rps, time', 'semaphore', 'page.hhapi_pages_employers'],
+            ['/employers, rps, code', 'codes', 'page.hhapi_pages_employers'],
+            ['/employers, q95, sec', 'response_time', 'page.hhapi_pages_employers'],
+
             ['/employers/{id}, rps, time', 'semaphore', 'page.hhapi_pages_employers_item'],
             ['/employers/{id}, rps, code', 'codes', 'page.hhapi_pages_employers_item'],
             ['/employers/{id}, q95, sec', 'response_time', 'page.hhapi_pages_employers_item'],
 
-            ['/vacancies/{id}, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_item'],
-            ['/vacancies/{id}, rps, code', 'codes', 'page.hhapi_pages_vacancies_item'],
-            ['/vacancies/{id}, q95, sec', 'response_time', 'page.hhapi_pages_vacancies_item']
+            /* 4 */
+
+            ['/resumes, rps, time', 'semaphore', 'page.hhapi_pages_resumes'],
+            ['/resumes, rps, code', 'codes', 'page.hhapi_pages_resumes'],
+            ['/resumes, q95, sec', 'response_time', 'page.hhapi_pages_resumes'],
+
+            ['/resumes/{id}, rps, time', 'semaphore', 'page.hhapi_pages_resumes_item'],
+            ['/resumes/{id}, rps, code', 'codes', 'page.hhapi_pages_resumes_item'],
+            ['/resumes/{id}, q95, sec', 'response_time', 'page.hhapi_pages_resumes_item'],
+
+            /* 5 */
+
+            ['/negotiations, rps, time', 'semaphore', 'page.hhapi_pages_negotiations'],
+            ['/negotiations, rps, code', 'codes', 'page.hhapi_pages_negotiations'],
+            ['/negotiations, q95, sec', 'response_time', 'page.hhapi_pages_negotiations'],
+
+            ['/negotiations/{id}, rps, time', 'semaphore', 'page.hhapi_pages_negotiations_item'],
+            ['/negotiations/{id}, rps, code', 'codes', 'page.hhapi_pages_negotiations_item'],
+            ['/negotiations/{id}, q95, sec', 'response_time', 'page.hhapi_pages_negotiations_item']
+
+
         ];
     </script>
 </head>
