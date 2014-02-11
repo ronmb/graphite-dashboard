@@ -11,7 +11,7 @@
         hhd.options = {
             url: 'http://graphite.hh.ru',
             refreshTimeout: 30000,
-            itemsInRow: 2,
+            itemsInRow: 1,
             itemsInCol: 3
         };
         hhd.renderOptions = {
@@ -24,18 +24,13 @@
             bgcolor: 'black',
             fgcolor: 'gray',
             hideLegend: 'false',
-            yMin: '0'
+            yMin: '0',
+            yMax: '150'
         };
         hhd.graphs = [
             /* [ title, template, source ] */
-
-            ['total, rps, time', 'semaphore', 'total'],
             ['total, rps, code', 'codes', 'total'],
-
-            ['/vacancies, rps, time', 'semaphore', 'page.hhapi_pages_vacancies'],
             ['/vacancies, rps, code', 'codes', 'page.hhapi_pages_vacancies'],
-
-            ['/vacancies/{id}, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_item'],
             ['/vacancies/{id}, rps, code', 'codes', 'page.hhapi_pages_vacancies_item']
         ];
     </script>
