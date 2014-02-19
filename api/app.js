@@ -17,12 +17,11 @@
         'response_time': 'group('+
             'threshold(0.3, "0.3 sec", "cc0000"),'+
             'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "00cc00"), "total")'+
-        ')',
-        'code': 'sum(hosts.api*.counts.total.code.{{SOURCE}})'
+        ')'
     };
 
     var fromValues = ['-1h', '-4h', '-12h', '-1d', '-7d'];
-    var ymaxValues = ['5', '10', '25', '50', '100', '150', '500'];
+    var ymaxValues = ['0', '5', '10', '25', '50', '100', '150', '500'];
 
     var refreshTimeout = 30000;
 
@@ -69,9 +68,12 @@
     var graphsNode = document.createElement('div');
     graphsNode.id = 'graphs';
 
+    var numbersNode = document.createElement('div');
+    numbersNode.id = 'fifties';
+
     var setParamsFromLocation = function(){
         var from = '-1h';
-        var yMax = '25';
+        var yMax = '0';
         var hash = window.location.search;
         if (hash) {
             hash = hash.substring(1);
@@ -110,14 +112,26 @@
     var draw = function(){
         graphs.forEach(function(item, index){
             var image = images[index];
-            preloadImage(
-                image.node,
-                image.url + urlencode({
-                    from: fromNode.value,
-                    yMax: ymaxNode.value
-                })
-            );
+
+            var url = image.url + urlencode({from: fromNode.value});
+
+            if (ymaxNode.value !== '0') {
+                url = url + urlencode({yMax: ymaxNode.value});
+            }
+
+            preloadImage(image.node, url);
         });
+    };
+
+    var getNumbers = function(){
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(event){
+           numbersNode.innerHTML = event;
+           window.setTimeout(getNumbers, refreshTimeout);
+        });
+        xhr.open('get',
+            'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.500)&format=json&from=-60sec');
+        xhr.send();
     };
 
 
@@ -141,11 +155,21 @@
         });
     });
 
+    var firstImg = document.querySelectorAll('#graphs > img')[1];
+    numbersNode.style.height = firstImg.height + 'px';
+    numbersNode.style.width = firstImg.width + 'px';
+    numbersNode.style.top = firstImg.offsetTop + 'px';
+    numbersNode.style.left = firstImg.offsetLeft + 'px';
+    numbersNode.style.fontSize = (firstImg.height / 3) + 'px';
+    document.body.appendChild(numbersNode);
+
     draw();
+    getNumbers();
     fromNode.addEventListener('change', draw);
     ymaxNode.addEventListener('change', draw);
 
     window.setInterval(draw, refreshTimeout);
+    window.setTimeout(getNumbers, refreshTimeout);
 
 })();
 

@@ -19,3 +19,11 @@ img {
     float: left;
 }
 
+#fifties {
+    z-index: 1000;
+    position: fixed;
+    text-align: right;
+    opacity: .5;
+    width: 100%;
+    font-family: monospace;
+}
