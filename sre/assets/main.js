@@ -1,13 +1,17 @@
 $(function() {
 
-    function updateGraph($parent, templateString, interval, additionalParams) {
+    function updateGraph($parent, templateString, from, to, additionalParams) {
         var splitted = templateString.split(/[(),]/);
         var templateName = splitted[0], host = $.trim(splitted[1]), source = $.trim(splitted[2]);
         var template = graphTemplates[templateName];
         var target = template.target.replace(/{{host}}/g, host).replace(/{{source}}/g, source);
 
         var params = [target, config.basicGraphParams, 'width=' + $parent.width(), 'height=' + $parent.height(),
-                      'from=-' + interval, additionalParams];
+                      'from=-' + from, additionalParams];
+
+        if (to != null) {
+            params.push('until=-' + to);
+        }
 
         if (template.options) {
             params.push(template.options);
@@ -22,13 +26,13 @@ $(function() {
         }
     }
 
-    function redrawGraphs(interval, additionalParams) {
+    function redrawGraphs(from, to, additionalParams) {
         $('#dashboard li[data-template]').each(function() {
             var template = $(this).attr('data-template'),
                 zoomTemplate = $(this).attr('data-template-zoom');
 
             if (!zoomTemplate) {
-                updateGraph($(this), template, interval, additionalParams);
+                updateGraph($(this), template, from, to, additionalParams);
             }
         });
     }

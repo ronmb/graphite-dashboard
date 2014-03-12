@@ -17,7 +17,8 @@
 
     <script>
         $(function() {
-            var interval = '2h';
+            var from = '2h';
+            var to = null;
             var errorLimit = 15;
 
             function playSound() {
@@ -34,7 +35,7 @@
                     additionalParams.push('fgcolor=ffffff&bgcolor=000000');
                 }
 
-                redrawGraphs(interval, additionalParams);
+                redrawGraphs(from, to, additionalParams);
             }
 
             $('#toggle-legend').click(function() {
@@ -58,12 +59,20 @@
             }
 
             crossroads.addRoute('/from/{period}', function(period) {
-                interval = period;
+                if (period.indexOf('-') >= 0) {
+                    var splitted = period.split('-');
+                    from = splitted[0];
+                    to = splitted[1];
+                } else {
+                    from = period;
+                    to = null;
+                }
+
                 updateGraphs();
             });
 
             function handleChanges(newHash, oldHash) {
-                crossroads.parse(newHash ? newHash : '/from/' + interval);
+                crossroads.parse(newHash ? newHash : '/from/' + from);
             }
 
             hasher.changed.add(handleChanges);
