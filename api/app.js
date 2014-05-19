@@ -1,10 +1,14 @@
 (function(){
+    'use strict';
 
     var templates = {
         'semaphore': 'group('+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.green)), "00cc00"), "< 0.3"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.yellow)), "cccc00"), "< 1.0"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.red)), "cc0000"), "> 1.0")'+
+            //'alias(color(sum(hosts.api*.counts.{{SOURCE}}.sum), "f629d9"), "sum"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "ffffff"), "5**"),'+  // aka "нефть"
+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.green)), "00cc00"), "< 0.3 (not 5**)"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.yellow)), "cccc00"), "< 1.0 (not 5**)"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.red)), "cc0000"), "> 1.0 (not 5**)")'+
         ')',
 
         'codes': 'group('+
@@ -124,14 +128,23 @@
     };
 
     var getNumbers = function(){
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', function(event){
-           numbersNode.innerHTML = event;
-           window.setTimeout(getNumbers, refreshTimeout);
+        var period = 60;  // seconds
+        $.ajax({
+            'success': function(data) {
+                var res = data[0].datapoints.reduce(
+                    function(acc, data_point) {
+                       return acc + data_point[0];
+                    },
+                    0
+                ) / period;
+                $(numbersNode).text('5** RPS: ' + res);
+            },
+            'complete': function() {
+                window.setTimeout(getNumbers, period * 1000);
+            },
+            'url': 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.500)&format=json&from=-' +
+                    period + 'sec'
         });
-        xhr.open('get',
-            'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.500)&format=json&from=-60sec');
-        xhr.send();
     };
 
 
@@ -157,10 +170,12 @@
 
     var firstImg = document.querySelectorAll('#graphs > img')[1];
     numbersNode.style.height = firstImg.height + 'px';
-    numbersNode.style.width = firstImg.width + 'px';
+    numbersNode.style.width = firstImg.width * 3 + 'px';
     numbersNode.style.top = firstImg.offsetTop + 'px';
     numbersNode.style.left = firstImg.offsetLeft + 'px';
     numbersNode.style.fontSize = (firstImg.height / 3) + 'px';
+    numbersNode.style.textAlign = 'left';
+    numbersNode.innerHTML = 'load ...';
     document.body.appendChild(numbersNode);
 
     draw();
