@@ -131,13 +131,18 @@
         var period = 60;  // seconds
         $.ajax({
             'success': function(data) {
-                var res = data[0].datapoints.reduce(
-                    function(acc, data_point) {
-                       return acc + data_point[0];
-                    },
-                    0
-                ) / period;
-                $(numbersNode).text('5** RPS: ' + res);
+                if (data && data.length > 0 && data[0].datapoints) {
+                    var res = data[0].datapoints.reduce(
+                        function(acc, data_point) {
+                            var weight = data_point.length > 0 ? data_point[0] : 0;
+                            return acc + weight;
+                        },
+                        0
+                    ) / period;
+                    $(numbersNode).text('5** RPS: ' + Math.round(res * 1000) / 1000);
+                } else {
+                    $(numbersNode).text('error');
+                }
             },
             'complete': function() {
                 window.setTimeout(getNumbers, period * 1000);
