@@ -142,7 +142,7 @@
             'complete': function() {
                 window.setTimeout(getNumbers, period * 1000);
             },
-            'url': 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.500)&format=json&from=-' +
+            'url': 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.5*)&format=json&from=-' +
                     period + 'sec'
         });
     };
