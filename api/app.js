@@ -1,3 +1,4 @@
+/* global GRAPHS */
 (function(){
     'use strict';
 
@@ -24,7 +25,7 @@
         ')'
     };
 
-    var fromValues = ['-1h', '-4h', '-12h', '-1d', '-7d'];
+    var fromValues = ['-15min', '-30min', '-1h', '-4h', '-12h', '-1d', '-7d'];
     var ymaxValues = ['0', '5', '10', '25', '50', '100', '150', '500'];
 
     var refreshTimeout = 30000;
@@ -114,7 +115,8 @@
     var images = [];
 
     var draw = function(){
-        graphs.forEach(function(item, index){
+        GRAPHS.forEach(function() {
+            var index = arguments[1];
             var image = images[index];
 
             var url = image.url + urlencode({from: fromNode.value});
@@ -129,37 +131,36 @@
 
     var getNumbers = function(){
         var period = 60;  // seconds
-        $.ajax({
-            'success': function(data) {
-                if (data && data.length > 0 && data[0].datapoints) {
-                    var res = data[0].datapoints.reduce(
-                        function(acc, data_point) {
-                            var weight = data_point.length > 0 ? data_point[0] : 0;
-                            return acc + weight;
-                        },
-                        0
-                    ) / period;
-                    $(numbersNode).text('5** RPS: ' + Math.round(res * 1000) / 1000);
-                } else {
-                    $(numbersNode).text('error');
-                }
-            },
-            'complete': function() {
+        var url = 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.5*)&format=json&from=-' +
+                    period + 'sec';
+        var xhr = new XMLHttpRequest();
+
+        var parseResponse = function() {
+            try {
+                var dataPoints = JSON.parse(this.responseText)[0].datapoints;
+                var number = dataPoints.reduce(
+                    function(acc, dataPoint) {
+                        var weight = dataPoint.length > 0 ? dataPoint[0] : 0;
+                        return acc + weight;
+                    }, 0);
+                numbersNode.innerHTML = Math.round(number / period * 1000) / 1000;
+            } catch(e) {
+                numbersNode.innerHTML = '…';
+            }finally {
                 window.setTimeout(getNumbers, period * 1000);
-            },
-            'url': 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.5*)&format=json&from=-' +
-                    period + 'sec'
-        });
+            }
+        };
+
+        xhr.addEventListener('load', parseResponse, false);
+        xhr.open('get', url);
+        xhr.send();
     };
 
 
     appendSelects();
     setParamsFromLocation();
 
-    document.body.appendChild(graphsNode);
-
-
-    graphs.forEach(function(item){
+    GRAPHS.forEach(function(item){
         var image = new Image();
         image.width = renderOptions.width;
         image.height = renderOptions.height;
@@ -173,14 +174,15 @@
         });
     });
 
-    var firstImg = document.querySelectorAll('#graphs > img')[1];
-    numbersNode.style.height = firstImg.height + 'px';
-    numbersNode.style.width = firstImg.width * 3 + 'px';
+    document.body.appendChild(graphsNode);
+
+    var firstImg = document.querySelector('#graphs > img');
     numbersNode.style.top = firstImg.offsetTop + 'px';
     numbersNode.style.left = firstImg.offsetLeft + 'px';
     numbersNode.style.fontSize = (firstImg.height / 3) + 'px';
     numbersNode.style.textAlign = 'left';
-    numbersNode.innerHTML = 'load ...';
+    numbersNode.innerHTML = '…';
+
     document.body.appendChild(numbersNode);
 
     draw();
