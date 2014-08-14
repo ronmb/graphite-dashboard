@@ -14,14 +14,14 @@
 
         'codes': 'group('+
             'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "ffffff"), "5xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.3*)), "blue"), "3xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.4*)), "006600"), "4xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.2*)), "00cc00"), "2xx")'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.3*)), "66d9ef"), "3xx"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.4*)), "323a9d"), "4xx"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.2*)), "be84ff"), "2xx")'+
         ')',
 
         'response_time': 'group('+
             'threshold(0.3, "0.3 sec", "cc0000"),'+
-            'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "00cc00"), "total")'+
+            'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "ee6775"), "total")'+
         ')'
     };
 
