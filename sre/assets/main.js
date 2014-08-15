@@ -17,6 +17,8 @@ $(function() {
             params.push(template.options);
         }
 
+        params.push('rand=' + Date.now());
+
         var src = config.graphiteUrl + '/render?target=' + params.join('&');
 
         if ($parent.children('img').length == 0) {
