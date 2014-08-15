@@ -27,3 +27,8 @@ img {
     width: 100%;
     font-family: monospace;
 }
+
+a, a:visited {
+    color: #fff;
+}
+

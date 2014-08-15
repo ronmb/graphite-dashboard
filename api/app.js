@@ -1,29 +1,70 @@
 /* global GRAPHS */
 (function(){
     'use strict';
+    var color, colors;
+    if (getQueryParam("colored") === "true") {
+        colors = {
+            '2xx': 'be84ff',
+            '3xx': '66d9ef',
+            '4xx': '323a9d',
+            '5xx': 'ffffff',
+            response_time: 'ee6775',
+            semaphore_green: '00cc00',
+            semaphore_yellow: 'cccc00',
+            semaphore_red: 'cc0000'
+        };
+    } else {
+        colors = {
+            '2xx': '00cc00',
+            '3xx': 'blue',
+            '4xx': '006600',
+            '5xx': 'ffffff',
+            response_time: '00cc00',
+            semaphore_green: '00cc00',
+            semaphore_yellow: 'cccc00',
+            semaphore_red: 'cc0000'
+        };
+    }
+
+    for (color in colors) {
+        if (colors.hasOwnProperty(color)) {
+            var userColor = getQueryParam(color);
+            if (userColor) {
+                colors[color] = userColor;
+            }
+        }
+    }
 
     var templates = {
         'semaphore': 'group('+
             //'alias(color(sum(hosts.api*.counts.{{SOURCE}}.sum), "f629d9"), "sum"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "ffffff"), "5**"),'+  // aka "нефть"
 
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.green)), "00cc00"), "< 0.3 (not 5**)"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.yellow)), "cccc00"), "< 1.0 (not 5**)"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.red)), "cc0000"), "> 1.0 (not 5**)")'+
+            // aka "нефть"
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5**"),' +
+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.green)), "' + colors.semaphore_green +
+                '"), "< 0.3 (not 5**)"),' +
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.yellow)), "' + colors.semaphore_yellow +
+                '"), "< 1.0 (not 5**)"),' +
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.red)), "' + colors.semaphore_red +
+                '"), "> 1.0 (not 5**)")' +
         ')',
 
         'codes': 'group('+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "ffffff"), "5xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.3*)), "66d9ef"), "3xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.4*)), "323a9d"), "4xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.2*)), "be84ff"), "2xx")'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5xx"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.3*)), "' + colors['3xx'] + '"), "3xx"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.4*)), "' + colors['4xx'] + '"), "4xx"),'+
+            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.2*)), "' + colors['2xx'] + '"), "2xx")'+
         ')',
 
         'response_time': 'group('+
             'threshold(0.3, "0.3 sec", "cc0000"),'+
-            'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "ee6775"), "total")'+
+            'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "' + colors.response_time +
+                '"), "total")'+
         ')'
     };
+
+    window.console && console.debug && console.debug(templates, 'templates');
 
     var fromValues = ['-15min', '-30min', '-1h', '-4h', '-12h', '-1d', '-7d'];
     var ymaxValues = ['0', '5', '10', '25', '50', '100', '150', '500'];
@@ -34,7 +75,7 @@
         fontSize: '12',
         fontName: 'FreeMono',
         fontBold: 'true',
-        lineWidth: '1',
+        lineWidth: '0',
         margin: '5',
         areaAlpha: '.5',
         bgcolor: 'black',
@@ -77,21 +118,8 @@
     numbersNode.id = 'fifties';
 
     var setParamsFromLocation = function(){
-        var from = '-1h';
-        var yMax = '0';
-        var hash = window.location.search;
-        if (hash) {
-            hash = hash.substring(1);
-            var delimiterIndex = hash.indexOf('/');
-            if (delimiterIndex === -1) {
-                from = hash;
-            } else {
-                from = hash.substring(0, delimiterIndex);
-                yMax = hash.substring(delimiterIndex+1);
-            }
-        }
-        fromNode.value = from;
-        ymaxNode.value = yMax;
+        fromNode.value = getQueryParam("from_node") || '-1h';
+        ymaxNode.value = getQueryParam("y_max") || '0';
     };
 
     var appendSelects = function(){
@@ -109,6 +137,16 @@
         document.body.appendChild(fromNode);
         document.body.appendChild(ymaxNode);
 
+        var colored = document.createElement('a');
+        if (getQueryParam("colored")) {
+            colored.href = '?';
+            colored.appendChild(document.createTextNode('убрать цвета'));
+        } else {
+            colored.href = '?colored=true';
+            colored.appendChild(document.createTextNode('добавить цвета'));
+        }
+        document.body.appendChild(document.createTextNode(' '));
+        document.body.appendChild(colored);
     };
 
 
@@ -192,6 +230,20 @@
 
     window.setInterval(draw, refreshTimeout);
     window.setTimeout(getNumbers, refreshTimeout);
+
+    //utils
+
+    function getQueryParam(param) {
+        var query = window.location.search.substring(1);
+        var vars = query.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split('=');
+            if (decodeURIComponent(pair[0]) === param) {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+        return undefined;
+    }
 
 })();
 
