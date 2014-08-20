@@ -26,6 +26,10 @@
         };
     }
 
+    var apiHost = getQueryParam('host') || '*';
+    if (apiHost !== '*') {
+        apiHost += '_hhnet_ru';
+    }
     for (color in colors) {
         if (colors.hasOwnProperty(color)) {
             var userColor = getQueryParam(color);
@@ -37,34 +41,32 @@
 
     var templates = {
         'semaphore': 'group('+
-            //'alias(color(sum(hosts.api*.counts.{{SOURCE}}.sum), "f629d9"), "sum"),'+
+            //'alias(color(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.sum), "f629d9"), "sum"),'+
 
             // aka "нефть"
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5**"),' +
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5**"),' +
 
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.green)), "' + colors.semaphore_green +
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.green)), "' + colors.semaphore_green +
                 '"), "< 0.3 (not 5**)"),' +
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.yellow)), "' + colors.semaphore_yellow +
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.yellow)), "' + colors.semaphore_yellow +
                 '"), "< 1.0 (not 5**)"),' +
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.semaphore.red)), "' + colors.semaphore_red +
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.red)), "' + colors.semaphore_red +
                 '"), "> 1.0 (not 5**)")' +
         ')',
 
         'codes': 'group('+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.3*)), "' + colors['3xx'] + '"), "3xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.4*)), "' + colors['4xx'] + '"), "4xx"),'+
-            'alias(color(stacked(sum(hosts.api*.counts.{{SOURCE}}.code.2*)), "' + colors['2xx'] + '"), "2xx")'+
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5xx"),'+
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.3*)), "' + colors['3xx'] + '"), "3xx"),'+
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.4*)), "' + colors['4xx'] + '"), "4xx"),'+
+            'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.2*)), "' + colors['2xx'] + '"), "2xx")'+
         ')',
 
         'response_time': 'group('+
             'threshold(0.3, "0.3 sec", "cc0000"),'+
-            'alias(color(stacked(maxSeries(hosts.api*.stages.{{SOURCE}}.total.q95)), "' + colors.response_time +
+            'alias(color(stacked(maxSeries(hosts.api' + apiHost + '.stages.{{SOURCE}}.total.q95)), "' + colors.response_time +
                 '"), "total")'+
         ')'
     };
-
-    window.console && console.debug && console.debug(templates, 'templates');
 
     var fromValues = ['-15min', '-30min', '-1h', '-4h', '-12h', '-1d', '-7d'];
     var ymaxValues = ['0', '5', '10', '25', '50', '100', '150', '500'];
@@ -169,7 +171,7 @@
 
     var getNumbers = function(){
         var period = 60;  // seconds
-        var url = 'http://graphite.hh.ru/render?target=sum(hosts.api*.counts.total.code.5*)&format=json&from=-' +
+        var url = 'http://graphite.hh.ru/render?target=sum(hosts.api' + apiHost + '.counts.total.code.5*)&format=json&from=-' +
                     period + 'sec';
         var xhr = new XMLHttpRequest();
 
