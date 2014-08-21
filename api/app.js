@@ -92,8 +92,8 @@
         fgcolor: 'gray',
         hideLegend: 'false',
         yMin: '0',
-        width: '316',
-        height: '216'
+        width: getQueryParam('graph_width') || '316',
+        height: getQueryParam('graph_height') || '216'
     };
 
     var urlencode = function(obj){
@@ -127,9 +127,26 @@
     var numbersNode = document.createElement('div');
     numbersNode.id = 'fifties';
 
+    //TODO: remove copy-pasting & merge with appendSelects
     var setParamsFromLocation = function(){
-        fromNode.value = getQueryParam("from_node") || '-1h';
-        ymaxNode.value = getQueryParam("y_max") || '0';
+        var from = getQueryParam("from") || '-1h';
+        var option;
+        if (fromValues.indexOf(from) === -1) {
+            option = document.createElement('option');
+            option.value = from;
+            option.text = '[' + from + ']';
+            fromNode.appendChild(option);
+        }
+        fromNode.value = from;
+
+        var ymax = getQueryParam("y_max") || '0';
+        if (ymaxValues.indexOf(ymax) === -1) {
+            option = document.createElement('option');
+            option.value = ymax;
+            option.text = '[' + ymax + ']';
+            ymaxNode.appendChild(option);
+        }
+        ymaxNode.value = ymax;
     };
 
     var appendSelects = function(){
