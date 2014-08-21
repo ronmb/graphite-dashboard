@@ -65,6 +65,14 @@
             'threshold(0.3, "0.3 sec", "cc0000"),'+
             'alias(color(stacked(maxSeries(hosts.api' + apiHost + '.stages.{{SOURCE}}.total.q95)), "' + colors.response_time +
                 '"), "total")'+
+        ')',
+
+        'cumulative_semaphore': 'group('+
+            // aka "нефть"
+            'alias(color(stacked(sum({{SOURCES_COUNTS_5}})), "' + colors['5xx'] + '"), "5**"),' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_GREEN}})), "' + colors.semaphore_green + '"), "< 0.3 (not 5**)"),' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_YELLOW}})), "' + colors.semaphore_yellow + '"), "< 1.0 (not 5**)"),' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_RED}})), "' + colors.semaphore_red + '"), "> 1.0 (not 5**)")' +
         ')'
     };
 
@@ -202,14 +210,45 @@
 
     GRAPHS.forEach(function(item){
         var image = new Image();
+        var target;
+        var title = item[0],
+            template = item[1],
+            sources = [].concat(item[2]);
         image.width = renderOptions.width;
         image.height = renderOptions.height;
         graphsNode.appendChild(image);
+
+        if (sources.length == 1) {
+            target = templates[template].replace(/{{SOURCE}}/g, sources[0]);
+        } else {
+            target = templates[template];
+
+            target = target.replace(/{{SOURCES}}/g, sources.join(','));
+
+            //TODO: universal solution
+            var tempSolution = function(target, tpl, code) {
+                return target.replace(
+                    new RegExp('{{'+tpl+'}}', 'g'),
+                    sources.map(function(i) {
+                        return 'hosts.api' + apiHost + '.counts.' + i + '.' + code;
+                    }).join(',')
+                );
+            };
+
+            target = tempSolution(target, 'SOURCES_COUNTS_2', 'code.2*');
+            target = tempSolution(target, 'SOURCES_COUNTS_3', 'code.3*');
+            target = tempSolution(target, 'SOURCES_COUNTS_4', 'code.4*');
+            target = tempSolution(target, 'SOURCES_COUNTS_5', 'code.5*');
+            target = tempSolution(target, 'SOURCES_COUNTS_GREEN', 'semaphore.green');
+            target = tempSolution(target, 'SOURCES_COUNTS_YELLOW', 'semaphore.yellow');
+            target = tempSolution(target, 'SOURCES_COUNTS_RED', 'semaphore.red');
+
+        }
         images.push({
             node: image,
             url: 'http://graphite.hh.ru/render?' + urlencode({
-                title: item[0],
-                target: templates[item[1]].replace(/{{SOURCE}}/g, item[2])
+                title: title,
+                target: target
             }) + urlencode(renderOptions)
         });
     });
