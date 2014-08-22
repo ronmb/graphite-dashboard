@@ -47,11 +47,11 @@
             'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.code.5*)), "' + colors['5xx'] + '"), "5**"),' +
 
             'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.green)), "' + colors.semaphore_green +
-                '"), "< 0.3 (not 5**)"),' +
+                '"), "<0.3 (-5**)"),' +
             'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.yellow)), "' + colors.semaphore_yellow +
-                '"), "< 1.0 (not 5**)"),' +
+                '"), "<1.0 (-5**)"),' +
             'alias(color(stacked(sum(hosts.api' + apiHost + '.counts.{{SOURCE}}.semaphore.red)), "' + colors.semaphore_red +
-                '"), "> 1.0 (not 5**)")' +
+                '"), ">1.0 (-5**)")' +
         ')',
 
         'codes': 'group('+
@@ -70,13 +70,20 @@
         'cumulative_semaphore': 'group('+
             // aka "нефть"
             'alias(color(stacked(sum({{SOURCES_COUNTS_5}})), "' + colors['5xx'] + '"), "5**"),' +
-            'alias(color(stacked(sum({{SOURCES_COUNTS_GREEN}})), "' + colors.semaphore_green + '"), "< 0.3 (not 5**)"),' +
-            'alias(color(stacked(sum({{SOURCES_COUNTS_YELLOW}})), "' + colors.semaphore_yellow + '"), "< 1.0 (not 5**)"),' +
-            'alias(color(stacked(sum({{SOURCES_COUNTS_RED}})), "' + colors.semaphore_red + '"), "> 1.0 (not 5**)")' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_GREEN}})), "' + colors.semaphore_green + '"), "<0.3 (-5**)"),' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_YELLOW}})), "' + colors.semaphore_yellow + '"), "<1.0 (-5**)"),' +
+            'alias(color(stacked(sum({{SOURCES_COUNTS_RED}})), "' + colors.semaphore_red + '"), ">1.0 (-5**)")' +
+        ')',
+
+        'cumulative_codes': 'group('+
+            'alias(color(stacked(sum({{SOURCES_COUNTS_5}})), "' + colors['5xx'] + '"), "5xx"),'+
+            'alias(color(stacked(sum({{SOURCES_COUNTS_3})), "' + colors['3xx'] + '"), "3xx"),'+
+            'alias(color(stacked(sum({{SOURCES_COUNTS_4}})), "' + colors['4xx'] + '"), "4xx"),'+
+            'alias(color(stacked(sum({{SOURCES_COUNTS_2}})), "' + colors['2xx'] + '"), "2xx")'+
         ')'
     };
 
-    var fromValues = ['-15min', '-30min', '-1h', '-4h', '-12h', '-1d', '-7d'];
+    var fromValues = ['-5min', '-10min', '-15min', '-30min', '-1h', '-90min', '-2h', '-150min', '-4h', '-12h', '-1d', '-7d'];
     var ymaxValues = ['0', '5', '10', '25', '50', '100', '150', '500'];
 
     var refreshTimeout = 30000;
@@ -92,8 +99,8 @@
         fgcolor: 'gray',
         hideLegend: 'false',
         yMin: '0',
-        width: getQueryParam('graph_width') || '316',
-        height: getQueryParam('graph_height') || '216'
+        width: getQueryParam('graph_width') || '474', //6x=316, 4x=474
+        height: getQueryParam('graph_height') || '270' //5x=216, 4x=270
     };
 
     var urlencode = function(obj){
@@ -129,7 +136,7 @@
 
     //TODO: remove copy-pasting & merge with appendSelects
     var setParamsFromLocation = function(){
-        var from = getQueryParam("from") || '-1h';
+        var from = getQueryParam("from") || '-90min';
         var option;
         if (fromValues.indexOf(from) === -1) {
             option = document.createElement('option');
@@ -259,7 +266,9 @@
             target = tempSolution(target, 'SOURCES_COUNTS_GREEN', 'semaphore.green');
             target = tempSolution(target, 'SOURCES_COUNTS_YELLOW', 'semaphore.yellow');
             target = tempSolution(target, 'SOURCES_COUNTS_RED', 'semaphore.red');
-
+        }
+        if (getQueryParam("targets")) {
+            window.console.info('Title: ' + title + ', target: ' + target);
         }
         images.push({
             node: image,
