@@ -11,53 +11,61 @@
              /* 1 */
             ['total, rps, time', 'semaphore', 'total'],
             ['total, rps, code', 'codes', 'total'],
-            ['total, q95, sec', 'response_time', 'total'],
 
             ['/vacancies, rps, time', 'semaphore', 'page.hhapi_pages_vacancies'],
             ['/vacancies, rps, code', 'codes', 'page.hhapi_pages_vacancies'],
-            ['/vacancies, q95, sec', 'response_time', 'page.hhapi_pages_vacancies'],
 
             /* 2 */
+            ['/resumes, rps, time', 'semaphore', 'page.hhapi_pages_resumes'],
+            ['/resumes, rps, code', 'codes', 'page.hhapi_pages_resumes'],
 
             ['/vacancies/{id}, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_item'],
             ['/vacancies/{id}, rps, code', 'codes', 'page.hhapi_pages_vacancies_item'],
-            ['/vacancies/{id}, q95, sec', 'response_time', 'page.hhapi_pages_vacancies_item'],
-
-            ['/vacancies/favorited, rps, time', 'semaphore', 'page.hhapi_pages_vacancies_favorited'],
-            ['/vacancies/favorited, rps, code', 'codes', 'page.hhapi_pages_vacancies_favorited'],
-            ['/vacancies/favorited, q95, sec', 'response_time', 'page.hhapi_pages_vacancies_favorited'],
 
             /* 3 */
 
+            ['All negotiations, rps, time', 'semaphore', 'page.hhapi_pages_negotiations*'],
+
+            ['[ETC], rps, time', 'cumulative_semaphore',
+                [
+                    'page.hhapi_pages_specializations',
+                    'page.hhapi_pages_industries',
+                    'page.hhapi_pages_areas*',
+                    'page.hhapi_pages_metro*',
+                    'page.hhapi_pages_dictionaries',
+                    'page.hhapi_pages_documents*',
+                    'page.hhapi_pages_languages',
+                    'page.hhapi_pages_locales*',
+                    'page.hhapi_pages_educational_institutions_item_faculties',
+                    'page.hhapi_pages_vacancies_favorited*',
+
+                    'page.hhapi_pages_employers_item*',
+
+                    'page.hhapi_pages_resumes_mine',
+                    'page.hhapi_pages_resume_conditions',
+                    'page.hhapi_pages_suggests_*',
+                    'page.hhapi_pages_admin*',
+                    'page.hhapi_pages_*_blacklisted*',
+                    'page.hhapi_pages_saved_searches*',
+                    'page.hhapi_pages_me',
+                    'page.hhapi_pages_users',
+                    'page.hhapi_pages_notifications*',
+                    'page.hhapi_pages_cors',
+                    'page.hhapi_pages_do_not_call_me',
+                    'page.hhapi_pages_memory'
+                ]
+            ],
+
             ['/employers, rps, time', 'semaphore', 'page.hhapi_pages_employers'],
             ['/employers, rps, code', 'codes', 'page.hhapi_pages_employers'],
-            ['/employers, q95, sec', 'response_time', 'page.hhapi_pages_employers'],
-
-            ['/employers/{id}, rps, time', 'semaphore', 'page.hhapi_pages_employers_item'],
-            ['/employers/{id}, rps, code', 'codes', 'page.hhapi_pages_employers_item'],
-            ['/employers/{id}, q95, sec', 'response_time', 'page.hhapi_pages_employers_item'],
-
-            /* 4 */
-
-            ['/resumes, rps, time', 'semaphore', 'page.hhapi_pages_resumes'],
-            ['/resumes, rps, code', 'codes', 'page.hhapi_pages_resumes'],
-            ['/resumes, q95, sec', 'response_time', 'page.hhapi_pages_resumes'],
-
-            ['/resumes/{id}, rps, time', 'semaphore', 'page.hhapi_pages_resumes_item'],
-            ['/resumes/{id}, rps, code', 'codes', 'page.hhapi_pages_resumes_item'],
-            ['/resumes/{id}, q95, sec', 'response_time', 'page.hhapi_pages_resumes_item'],
 
             /* 5 */
 
-            ['/negotiations, rps, time', 'semaphore', 'page.hhapi_pages_negotiations'],
-            ['/negotiations, rps, code', 'codes', 'page.hhapi_pages_negotiations'],
-            ['/negotiations, q95, sec', 'response_time', 'page.hhapi_pages_negotiations'],
+            ['/resumes/{id}, /resumes/{id}/*, rps, time', 'semaphore', 'page.hhapi_pages_resumes_item*'],
+            ['/resumes/{id}, /resumes/{id}/*, rps, code', 'codes', 'page.hhapi_pages_resumes_item*'],
 
-            ['/negotiations/{id}, rps, time', 'semaphore', 'page.hhapi_pages_negotiations_item'],
-            ['/negotiations/{id}, rps, code', 'codes', 'page.hhapi_pages_negotiations_item'],
-            ['/negotiations/{id}, q95, sec', 'response_time', 'page.hhapi_pages_negotiations_item']
-
-
+            ['All suggests, q95', 'response_time', 'page.hhapi_pages_suggests_*'],
+            ['All widgets, rps, time', 'semaphore', 'page.hhapi_pages_widgets*']
         ];
     </script>
 
