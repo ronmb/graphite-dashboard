@@ -47,12 +47,12 @@ graphTemplates = {
 
 counters = {
     RPS: {
-        target: 'sum(hosts.frontik[0-9]*.counts.total.sum*)',
+        target: 'sum(hosts.frontik[0-9]*.counts.total.sum*, hosts.api[0-9]*.counts.total.sum, hosts.mobile[0-9]*.counts.total.sum)',
         period: 60,
         updateInterval: 15000
     },
     errors: {
-        target: 'sum(hosts.frontik[0-9]*.counts.total.code.5*)',
+        target: 'sum(hosts.frontik[0-9]*.counts.total.code.5*, hosts.api[0-9]*.counts.total.code.5*, hosts.mobile[0-9]*.counts.total.code.5*)',
         period: 60,
         updateInterval: 15000
     }
