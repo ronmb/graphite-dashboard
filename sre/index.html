@@ -113,8 +113,8 @@
         <ul class="main-graphs">
             <!--<li data-template="timings_by_host(frontik[0-9]*)">Response time by host</li>-->
             <!--<li data-template="rps_by_host(frontik[0-9]*)">RPS by host</li>-->
-            <li data-template="semaphore(frontik[0-9]*, total)">Frontik RPS</li>
-            <li data-template="stages-frontik-q95(frontik[0-9]*, total)">Frontik stages q95</li>
+            <li data-template="semaphore(frontik[0-9]*, total)">XHH RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, total)">XHH stages q95</li>
             <li data-template="semaphore(api[0-9]*, total)">API RPS</li>
             <li data-template="semaphore(logic[0-9]*, total)">Logic RPS</li>
             <li data-template="stages-logic-q95(logic[0-9]*, total)">Logic stages q95</li>
@@ -125,10 +125,10 @@
                 5xxPS: <span id="5xx-count">NA</span>
             </li>
             <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_index)">Index RPS</li>
+            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_index)">Index stages q95</li>
             <li data-template="semaphore(trans[0-9]*, total)">Translations RPS</li>
             <li data-template="semaphore(mobile[0-9]*, total)">HHMobile RPS</li>
             <li data-template="semaphore(frontik-api[0-9]*, total)">OLD API RPS</li>
-            <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_index)">Index stages q95</li>
             <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_search_vacancy)">Vacancy search RPS</li>
             <li data-template="stages-frontik-q95(frontik[0-9]*, page.xhh_pages_search_vacancy)">Vacancy search stages q95</li>
             <li data-template="semaphore(frontik[0-9]*, page.xhh_pages_vacancy)">Vacancy RPS</li>
